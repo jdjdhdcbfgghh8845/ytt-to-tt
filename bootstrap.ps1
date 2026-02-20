@@ -1,11 +1,12 @@
 # YT ➜ TikTok Auto-uploader: REMOTE BOOTSTRAP
 # Run this via: iwr -useb https://raw.githubusercontent.com/jdjdhdcbfgghh8845/ytt-to-tt/main/bootstrap.ps1 | iex
 
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $repoUrl = "https://github.com/jdjdhdcbfgghh8845/ytt-to-tt.git"
 $destDir = "ytt-to-tt"
 
 Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host "   YT ➜ TikTok: STARTING REMOTE INSTALLATION        " -ForegroundColor Cyan
+Write-Host "   YT -> TikTok: STARTING REMOTE INSTALLATION        " -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 
 # 1. Check for Git
@@ -26,6 +27,6 @@ else {
     Set-Location $destDir
 }
 
-# 3. Run the pro installer
+# 3. Run the pro installer (New Python Setup)
 Write-Host "[*] Launching Internal Installer..." -ForegroundColor Green
-powershell -ExecutionPolicy Bypass -File install.ps1
+python setup.py
