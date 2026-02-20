@@ -1,6 +1,11 @@
 # YT ➜ TikTok Auto-uploader: ULTIMATE BOOTSTRAP
 $ErrorActionPreference = "Stop"
 
+# Force UTF-8 Encoding for Russian characters
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
 function Show-Menu {
     param (
         [string]$Title,
@@ -11,23 +16,36 @@ function Show-Menu {
     $startLine = [Console]::CursorTop
     $current = $SelectedIndex
 
-    while ($true) {
-        [Console]::SetCursorPosition(0, $startLine)
-        Write-Host "--- $Title ---`n" -ForegroundColor Cyan
-        
-        for ($i = 0; $i -lt $Options.Count; $i++) {
-            if ($i -eq $current) {
-                Write-Host "  > $($Options[$i])" -ForegroundColor White -BackgroundColor Blue
-            }
-            else {
-                Write-Host "    $($Options[$i])" -ForegroundColor Gray
-            }
-        }
+    # Hide cursor for cleaner look
+    $oldCursorSize = $Host.UI.RawUI.CursorSize
+    $Host.UI.RawUI.CursorSize = 0
 
-        $key = [Console]::ReadKey($true)
-        if ($key.Key -eq "UpArrow") { $current = if ($current -gt 0) { $current - 1 } else { $Options.Count - 1 } }
-        elseif ($key.Key -eq "DownArrow") { $current = if ($current -lt $Options.Count - 1) { $current + 1 } else { 0 } }
-        elseif ($key.Key -eq "Enter") { return $current }
+    try {
+        while ($true) {
+            [Console]::SetCursorPosition(0, $startLine)
+            Write-Host "--- $Title ---`n" -ForegroundColor Cyan
+            
+            for ($i = 0; $i -lt $Options.Count; $i++) {
+                if ($i -eq $current) {
+                    Write-Host "  > $($Options[$i])  " -ForegroundColor White -BackgroundColor Blue
+                }
+                else {
+                    Write-Host "    $($Options[$i])  " -ForegroundColor Gray
+                }
+            }
+
+            if ([Console]::KeyAvailable) {
+                $key = [Console]::ReadKey($true)
+                if ($key.Key -eq "UpArrow") { $current = if ($current -gt 0) { $current - 1 } else { $Options.Count - 1 } }
+                elseif ($key.Key -eq "DownArrow") { $current = if ($current -lt $Options.Count - 1) { $current + 1 } else { 0 } }
+                elseif ($key.Key -eq "Enter") { return $current }
+            }
+            Start-Sleep -Milliseconds 50
+        }
+    }
+    finally {
+        $Host.UI.RawUI.CursorSize = $oldCursorSize
+        Write-Host ""
     }
 }
 
