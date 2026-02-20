@@ -7,6 +7,13 @@ import msvcrt
 import requests
 import zipfile
 
+# Force UTF-8 for everything
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
+    os.system('chcp 65001 > nul')
+
 # Enable ANSI colors for Windows console
 os.system("")
 
@@ -24,7 +31,7 @@ def show_menu(title, options):
     while True:
         os.system('cls')
         print(f"{CYAN}===================================================={RESET}")
-        print(f"{CYAN}   YT ➜ TikTok: {BOLD}{title}{RESET}")
+        print(f"{CYAN}   YT -> TikTok: {BOLD}{title}{RESET}")
         print(f"{CYAN}===================================================={RESET}\n")
         
         for i, option in enumerate(options):
