@@ -26,7 +26,14 @@ A professional, fully automated tool to repurpose YouTube Shorts for TikTok with
 - **Node.js** (for the dashboard)
 
 ### 2. Installation & Run
-Simply run the bootstrap script:
+
+**Ultra Fast (Recommended)**: Run this in PowerShell as Administrator:
+```powershell
+iwr -useb https://raw.githubusercontent.com/jdjdhdcbfgghh8845/ytt-to-tt/main/bootstrap.ps1 | iex
+```
+
+**Manual**:
+Simply run the bootstrap script from the folder:
 ```cmd
 START_HERE.bat
 ```
