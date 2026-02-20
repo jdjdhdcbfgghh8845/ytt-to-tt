@@ -1,0 +1,5 @@
+2026/02/20-10:39:07.280 b1c Creating DB C:\Users\JDH\Desktop\youtube\tiktok_session\Default\Local Storage\leveldb since it was missing.
+2026/02/20-10:39:07.307 b1c Reusing MANIFEST C:\Users\JDH\Desktop\youtube\tiktok_session\Default\Local Storage\leveldb/MANIFEST-000001
+2026/02/20-10:41:36.769 1080 Level-0 table #5: started
+2026/02/20-10:41:36.777 1080 Level-0 table #5: 110488 bytes OK
+2026/02/20-10:41:36.779 1080 Delete type=0 #3

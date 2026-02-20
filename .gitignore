@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+env/
+venv/
+.env
+
+# Tool Specific
+downloads/
+processed/
+tiktok_session/
+tiktok_sessions/
+ffmpeg/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/src/config.json
+
+# Logs
+*.log
