@@ -1,7 +1,7 @@
 # YT ➜ TikTok Auto-uploader: ULTIMATE BOOTSTRAP
 $ErrorActionPreference = "Stop"
 
-# Force UTF-8 Encoding for Russian characters
+# Force UTF-8 Encoding across the board
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::InputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -16,14 +16,15 @@ function Show-Menu {
     $startLine = [Console]::CursorTop
     $current = $SelectedIndex
 
-    # Hide cursor for cleaner look
+    # Hide cursor
     $oldCursorSize = $Host.UI.RawUI.CursorSize
-    $Host.UI.RawUI.CursorSize = 0
+    try { $Host.UI.RawUI.CursorSize = 0 } catch {}
 
     try {
         while ($true) {
             [Console]::SetCursorPosition(0, $startLine)
-            Write-Host "--- $Title ---`n" -ForegroundColor Cyan
+            Write-Host "--- $Title ---" -ForegroundColor Cyan
+            Write-Host ""
             
             for ($i = 0; $i -lt $Options.Count; $i++) {
                 if ($i -eq $current) {
