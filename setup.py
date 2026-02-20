@@ -1,94 +1,145 @@
 import os
-import subprocess
 import sys
+import subprocess
 import shutil
 import json
+import msvcrt
+import requests
+import zipfile
 
-def run_command(command, description):
-    print(f"\n[+] {description}...")
-    try:
-        subprocess.run(command, shell=True, check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"[-] Error: {description} failed.")
-        return False
-    return True
+# Enable ANSI colors for Windows console
+os.system("")
 
-def setup_environment():
-    print("====================================================")
-    print("   YT ➜ TikTok Auto-uploader: Universal Setup       ")
-    print("====================================================\n")
+# Constants for colors
+BLUE = "\033[94m"
+CYAN = "\033[96m"
+GREEN = "\033[92m"
+YELLOW = "\033[93m"
+RED = "\033[91m"
+RESET = "\033[0m"
+BOLD = "\033[1m"
 
-    # 1. Install dependencies
-    if not run_command("pip install -r requirements.txt", "Installing Python dependencies"):
-        return
+def show_menu(title, options):
+    current = 0
+    while True:
+        os.system('cls')
+        print(f"{CYAN}===================================================={RESET}")
+        print(f"{CYAN}   YT ➜ TikTok: {BOLD}{title}{RESET}")
+        print(f"{CYAN}===================================================={RESET}\n")
+        
+        for i, option in enumerate(options):
+            if i == current:
+                print(f"  {BLUE}> {BOLD}{option}{RESET}")
+            else:
+                print(f"    {option}")
+        
+        print(f"\n{CYAN}(Use arrows to navigate, Enter to select){RESET}")
+        
+        key = msvcrt.getch()
+        if key == b'\r': # Enter key
+            return current
+        elif key == b'\x00' or key == b'\xe0': # Arrow key prefix
+            key = msvcrt.getch()
+            if key == b'H': # Up
+                current = (current - 1) % len(options)
+            elif key == b'P': # Down
+                current = (current + 1) % len(options)
 
-    # 2. Browser Selection
-    print("\n[?] Which browser do you use for TikTok?")
-    print("1) Firefox (Recommended)")
-    print("2) Google Chrome")
-    choice = input("Enter 1 or 2: ").strip()
+def run_setup():
+    # 1. Select Language
+    lang_idx = show_menu("SELECT LANGUAGE / ВЫБЕРИТЕ ЯЗЫК", ["English", "Русский"])
+    is_ru = (lang_idx == 1)
+    
+    t = {
+        'ffmpeg_check': "Checking for FFmpeg..." if not is_ru else "Проверка FFmpeg...",
+        'ffmpeg_download': "Downloading FFmpeg (this can take a minute)..." if not is_ru else "Загрузка FFmpeg (это может занять минуту)...",
+        'deps_install': "Installing core dependencies..." if not is_ru else "Установка основных зависимостей...",
+        'browser_select': "SELECT YOUR PRIMARY BROWSER" if not is_ru else "ВЫБЕРИТЕ ВАШ ОСНОВНОЙ БРАУЗЕР",
+        'setup_complete': "SETUP COMPLETE! LAUNCHING..." if not is_ru else "УСТАНОВКА ЗАВЕРШЕНА! ЗАПУСК...",
+        'browser_setup': "Setting up {} for automation..." if not is_ru else "Настройка {} для автоматизации...",
+    }
 
-    browser = "firefox" if choice == "1" else "chromium"
-    channel = "" if choice == "1" else "chrome"
-
-    # 3. Install Playwright browser
-    install_cmd = f"playwright install {browser}"
-    run_command(install_cmd, f"Installing {browser} for Playwright")
-
-    # 4. Check/Install FFmpeg (simple check)
+    print(f"\n{CYAN}[*] {t['ffmpeg_check']}{RESET}", end=" ", flush=True)
+    
     try:
         subprocess.run(["ffmpeg", "-version"], capture_output=True)
-        print("[+] FFmpeg is already installed.")
-    except FileNotFoundError:
-        print("[!] FFmpeg not found! Please install it manually from https://ffmpeg.org/download.html")
-        print("    Or ensure it's in your PATH.")
+        print(f"{GREEN}OK{RESET}")
+    except:
+        print(f"{YELLOW}NOT FOUND{RESET}")
+        print(f"{CYAN}[>] {t['ffmpeg_download']}{RESET}")
+        ffmpeg_url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
+        zip_path = os.path.join(os.environ['TEMP'], "ffmpeg_setup.zip")
+        dest_folder = os.path.join(os.environ['USERPROFILE'], "ffmpeg")
+        
+        if not os.path.exists(dest_folder): os.makedirs(dest_folder)
+        
+        r = requests.get(ffmpeg_url, stream=True)
+        with open(zip_path, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=8192): f.write(chunk)
+        
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref: zip_ref.extractall(dest_folder)
+            
+        for root, dirs, files in os.walk(dest_folder):
+            if "bin" in dirs:
+                bin_path = os.path.join(root, "bin")
+                os.environ["PATH"] += os.pathsep + bin_path
+                subprocess.run(f'powershell -Command "[Environment]::SetEnvironmentVariable(\'Path\', [Environment]::GetEnvironmentVariable(\'Path\', \'User\') + \';{bin_path}\', \'User\')"', shell=True)
+                break
+        print(f"{GREEN}[+] FFmpeg installed!{RESET}")
 
-    # 5. Update uploader.py structure based on choice (dynamic profile detection)
+    print(f"\n{CYAN}[*] {t['deps_install']}{RESET}")
+    subprocess.run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], check=True)
+    if os.path.exists("frontend"):
+        print(f"    [*] Installing Frontend dependencies (NPM)...")
+        subprocess.run("npm install", cwd="frontend", shell=True)
+
+    browser_idx = show_menu(t['browser_select'], ["Firefox (Recommended/Рекомендуется)", "Google Chrome"])
+    choice = "1" if browser_idx == 0 else "2"
+    browser_type = "firefox" if browser_idx == 0 else "chromium"
+    
+    print(f"\n{CYAN}[*] {t['browser_setup'].format(browser_type)}{RESET}")
+    subprocess.run(["playwright", "install", browser_type], check=True)
+
+    with open(os.path.join("frontend", "src", "config.json"), "w") as f:
+        json.dump({"lang": "ru" if is_ru else "en"}, f)
+        
     update_uploader_config(choice)
 
-    # 6. Final Launch
-    print("\n[!] Setup Complete!")
-    print("[>] Starting the application...")
+    print(f"\n{GREEN}===================================================={RESET}")
+    print(f"{GREEN}   {t['setup_complete']}         {RESET}")
+    print(f"{GREEN}===================================================={RESET}\n")
     subprocess.run("run_all.bat", shell=True)
 
 def update_uploader_config(choice):
     uploader_path = "uploader.py"
-    with open(uploader_path, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-
+    if not os.path.exists(uploader_path): return
+    with open(uploader_path, "r", encoding="utf-8") as f: lines = f.readlines()
     app_data = os.environ.get('APPDATA', '')
-    local_app_data = os.environ.get('LOCALAPPDATA', '')
-
     new_lines = []
     skip = False
     for line in lines:
         if "with sync_playwright() as p:" in line:
             new_lines.append(line)
-            if choice == "1": # Firefox
-                # Try to find default profile
+            if choice == "1":
                 ff_path = os.path.join(app_data, 'Mozilla', 'Firefox', 'Profiles')
                 profile = "default-release"
                 if os.path.exists(ff_path):
                     dirs = [d for d in os.listdir(ff_path) if "default-release" in d]
                     if dirs: profile = dirs[0]
-                
                 new_lines.append(f"            app_data = os.environ['APPDATA']\n")
                 new_lines.append(f"            user_data_dir = os.path.join(app_data, 'Mozilla', 'Firefox', 'Profiles', '{profile}')\n")
                 new_lines.append(f"            browser = p.firefox.launch_persistent_context(user_data_dir, headless=False, no_viewport=True, args=['--allow-downgrade'])\n")
-            else: # Chrome
+            else:
                 new_lines.append(f"            user_data_dir = os.path.join(os.environ['LOCALAPPDATA'], 'Google', 'Chrome', 'User Data')\n")
                 new_lines.append(f"            browser = p.chromium.launch_persistent_context(user_data_dir, channel='chrome', headless=False, no_viewport=True)\n")
             skip = True
             continue
-        
-        if skip and "page = browser.new_page()" in line:
-            skip = False
-        
-        if not skip:
-            new_lines.append(line)
-
-    with open(uploader_path, "w", encoding="utf-8") as f:
-        f.writelines(new_lines)
+        if skip and "page = browser.new_page()" in line: skip = False
+        if not skip: new_lines.append(line)
+    with open(uploader_path, "w", encoding="utf-8") as f: f.writelines(new_lines)
 
 if __name__ == "__main__":
-    setup_environment()
+    try:
+        run_setup()
+    except KeyboardInterrupt:
+        print(f"\n{RED}[!] Setup cancelled by user.{RESET}")
