@@ -1,5 +1,5 @@
-# YT -> TikTok: REMOTE BOOTSTRAP
-# Run this via: iwr -useb https://raw.githubusercontent.com/jdjdhdcbfgghh8845/ytt-to-tt/main/bootstrap.ps1 | iex
+# YT -> TikTok: REMOTE BOOTSTRAP (v2.1.0-FIX)
+# Run this via: iwr -useb https://raw.githubusercontent.com/jdjdhdcbfgghh8845/ytt-to-tt/main/bootstrap.ps1?v=2 | iex
 
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
